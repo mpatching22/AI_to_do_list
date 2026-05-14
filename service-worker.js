@@ -1,4 +1,4 @@
-const CACHE_NAME = "personal-command-centre-v2-pwa-5";
+const CACHE_NAME = "personal-command-centre-v2-pwa-9";
 const APP_SHELL = "./to_do_listv2.html";
 const APP_ASSETS = [
   APP_SHELL,

@@ -264,7 +264,7 @@
       border: var(--border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(14px);
+      /* Keep panels glassy without filter contexts; Firefox can detach native select popups under filtered ancestors. */
     }
 
     .brain-dump {
@@ -1231,12 +1231,15 @@
       grid-template-columns: minmax(220px, 1fr) 180px 180px 180px;
       gap: 10px;
       margin-bottom: 16px;
-      padding: 14px;
+      padding: 12px;
       border-radius: 22px;
-      background: rgba(255,255,255,0.64);
+      background: rgba(255,255,255,0.76);
       border: var(--border);
       box-shadow: var(--shadow-soft);
+      align-items: center;
     }
+
+    .view-controls > * { min-width: 0; }
 
     .input, .select, .textarea {
       width: 100%;
@@ -1245,6 +1248,19 @@
       border-radius: 14px;
       color: var(--ink);
       padding: 10px 12px;
+      min-height: 42px;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .input:hover, .select:hover, .textarea:hover {
+      border-color: rgba(22,99,63,0.24);
+      background: #ffffff;
+    }
+
+    .select {
+      cursor: pointer;
+      appearance: auto;
+      pointer-events: auto;
     }
 
     .textarea { min-height: 92px; resize: vertical; }
@@ -1285,9 +1301,9 @@
       color: var(--ink);
     }
 
-    dialog::backdrop { background: rgba(6,32,22,0.42); backdrop-filter: blur(4px); }
+    dialog::backdrop { background: rgba(6,32,22,0.42); }
 
-    .modal-card { background: #f8fcf8; border-radius: 28px; overflow: hidden; border: 1px solid rgba(255,255,255,0.5); }
+    .modal-card { background: #f8fcf8; border-radius: 28px; overflow: visible; border: 1px solid rgba(255,255,255,0.5); }
     .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 22px; background: linear-gradient(135deg, var(--green-900), var(--green-700)); color: #fff; }
     .modal-head h3 { margin: 0; font-size: 24px; letter-spacing: -0.04em; color: #fff; }
     .modal-head p { margin: 4px 0 0; color: rgba(255,255,255,0.76); }
@@ -1295,7 +1311,7 @@
 
     .modal-body { padding: 18px; overflow-y: auto; max-height: calc(88vh - 96px); }
     .form-section { border: 1px solid rgba(22,99,63,0.11); background: rgba(255,255,255,0.70); border-radius: 20px; padding: 14px; margin-bottom: 12px; }
-    details.form-section { padding: 0; overflow: hidden; }
+    details.form-section { padding: 0; overflow: visible; }
     details.form-section[open] { background: rgba(255,255,255,0.78); }
     .form-section summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; cursor: pointer; font-weight: 900; color: var(--green-900); }
     .form-section summary::-webkit-details-marker { display: none; }
@@ -1359,7 +1375,7 @@
     }
 
     .enhanced-controls {
-      grid-template-columns: minmax(240px, 1.3fr) 150px 170px 150px 150px auto;
+      grid-template-columns: minmax(260px, 1.5fr) minmax(140px, 0.75fr) minmax(170px, 0.9fr) minmax(150px, 0.8fr) minmax(150px, 0.8fr) auto;
     }
 
     .chip.category {
@@ -1804,6 +1820,59 @@
       .subtask-modal-actions { justify-content: flex-start; }
       .subtask-edit-row { grid-template-columns: 24px 32px minmax(0, 1fr) 32px 32px 32px; gap: 5px; }
     }
+
+
+    /* Firefox/Linux fix: native <select> popups were detaching from dialogs and
+       appearing at the top of the browser. Use a lightweight DOM dropdown for
+       pointer clicks on .select controls so the menu anchors to the clicked field. */
+    .custom-select-menu {
+      position: fixed;
+      z-index: 2147483647;
+      min-width: 180px;
+      max-width: min(420px, calc(100vw - 16px));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      scrollbar-width: thin;
+      padding: 6px;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid rgba(22,99,63,0.18);
+      box-shadow: 0 18px 50px rgba(6, 32, 22, 0.24);
+      color: var(--ink);
+    }
+
+    .custom-select-option {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      font-weight: 800;
+    }
+
+    .custom-select-option:hover,
+    .custom-select-option.active {
+      background: var(--green-100);
+      color: var(--green-900);
+    }
+
+    .custom-select-option.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .custom-select-check {
+      color: var(--green-700);
+      font-weight: 950;
+    }
+
   </style>
 </head>
 <body>
@@ -3152,7 +3221,20 @@
     function renderAllTasksView() {
       const tasks = filterTasksAdvanced(state.tasks);
       visibleTaskIds = tasks.map(t => t.id);
-      return `${renderControls()}<div class="task-list">${tasks.map(t => renderTaskCard(t)).join("") || emptyState("No tasks match that filter.")}</div>`;
+      return `${renderControls()}<div class="task-list" id="allTasksResults">${renderAllTasksResults(tasks)}</div>`;
+    }
+
+    function renderAllTasksResults(tasks = filterTasksAdvanced(state.tasks)) {
+      visibleTaskIds = tasks.map(t => t.id);
+      return tasks.map(t => renderTaskCard(t)).join("") || emptyState("No tasks match that filter.");
+    }
+
+    function updateAllTasksResults() {
+      const results = $("#allTasksResults");
+      if (!results) return render();
+      results.innerHTML = renderAllTasksResults();
+      renderNav();
+      saveState();
     }
 
     function renderControls() {
@@ -3756,6 +3838,109 @@
       $("#newCategoryColor").innerHTML = Object.entries(CATEGORY_COLORS).map(([value, cfg]) => `<option value="${value}">${cfg.label}</option>`).join("");
     }
 
+
+
+    let activeCustomSelect = null;
+    let activeCustomSelectMenu = null;
+
+    function closeCustomSelectMenu() {
+      if (activeCustomSelectMenu) activeCustomSelectMenu.remove();
+      activeCustomSelectMenu = null;
+      activeCustomSelect = null;
+    }
+
+    function openCustomSelectMenu(select) {
+      closeCustomSelectMenu();
+      if (!select || select.disabled) return;
+
+      activeCustomSelect = select;
+      const options = Array.from(select.options || []);
+      if (!options.length) return;
+
+      const rect = select.getBoundingClientRect();
+      const menu = document.createElement("div");
+      menu.className = "custom-select-menu";
+      menu.setAttribute("role", "listbox");
+      menu.setAttribute("aria-label", select.getAttribute("aria-label") || select.id || "Select option");
+
+      menu.innerHTML = options.map((option, index) => {
+        const selected = option.value === select.value;
+        return `<button class="custom-select-option ${selected ? "active" : ""} ${option.disabled ? "disabled" : ""}" type="button" role="option" aria-selected="${selected}" data-custom-select-index="${index}" ${option.disabled ? "disabled" : ""}><span>${escapeHtml(option.textContent || option.value)}</span>${selected ? `<span class="custom-select-check">✓</span>` : ""}</button>`;
+      }).join("");
+
+      const host = select.closest("dialog[open]") || document.body;
+      host.appendChild(menu);
+      activeCustomSelectMenu = menu;
+
+      const menuMaxHeight = Math.min(280, Math.max(120, window.innerHeight - 20));
+      const estimatedHeight = Math.min(menuMaxHeight, Math.max(44, options.length * 40 + 12));
+      const width = Math.max(rect.width, 180);
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+      const spaceBelow = window.innerHeight - rect.bottom - 8;
+      const spaceAbove = rect.top - 8;
+      const openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+      const top = openUp
+        ? Math.max(8, rect.top - estimatedHeight - 6)
+        : Math.min(rect.bottom + 6, window.innerHeight - estimatedHeight - 8);
+
+      menu.style.left = `${left}px`;
+      menu.style.top = `${Math.max(8, top)}px`;
+      menu.style.width = `${width}px`;
+      menu.style.maxHeight = `${menuMaxHeight}px`;
+
+      const selectedButton = menu.querySelector(".custom-select-option.active");
+      requestAnimationFrame(() => selectedButton?.scrollIntoView({ block: "nearest" }));
+
+      // Allow the mouse wheel to scroll the custom dropdown itself.
+      // Without this, the global scroll-close handler can close the menu before
+      // the menu scrolls, especially inside <dialog> on Firefox/Linux.
+      menu.addEventListener("wheel", event => {
+        if (menu.scrollHeight <= menu.clientHeight) return;
+        event.stopPropagation();
+
+        const atTop = menu.scrollTop <= 0;
+        const atBottom = Math.ceil(menu.scrollTop + menu.clientHeight) >= menu.scrollHeight;
+        const scrollingPastTop = event.deltaY < 0 && atTop;
+        const scrollingPastBottom = event.deltaY > 0 && atBottom;
+
+        if (scrollingPastTop || scrollingPastBottom) event.preventDefault();
+      }, { passive: false });
+
+      menu.addEventListener("scroll", event => event.stopPropagation(), true);
+      menu.addEventListener("pointerdown", event => event.preventDefault());
+      menu.addEventListener("click", event => {
+        const button = event.target.closest("[data-custom-select-index]");
+        if (!button) return;
+        const option = options[Number(button.dataset.customSelectIndex)];
+        if (!option || option.disabled) return;
+        select.value = option.value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        closeCustomSelectMenu();
+        select.focus();
+      });
+    }
+
+    function handleCustomSelectPointer(event) {
+      if (event.target.closest(".custom-select-menu")) return;
+      const select = event.target.closest("select.select");
+      if (!select) { closeCustomSelectMenu(); return; }
+      event.preventDefault();
+      event.stopPropagation();
+      select.focus();
+      openCustomSelectMenu(select);
+    }
+
+    function setupCustomSelects() {
+      document.addEventListener("pointerdown", handleCustomSelectPointer, true);
+      document.addEventListener("keydown", event => { if (event.key === "Escape") closeCustomSelectMenu(); });
+      window.addEventListener("resize", closeCustomSelectMenu);
+      window.addEventListener("scroll", event => {
+        if (activeCustomSelectMenu && (event.target === activeCustomSelectMenu || activeCustomSelectMenu.contains(event.target))) return;
+        closeCustomSelectMenu();
+      }, true);
+    }
+
+
     function attachEvents() {
       $("#quickAddForm").addEventListener("submit", event => { event.preventDefault(); addTaskFromQuickInput(); });
       $("#newTaskBtn").addEventListener("click", () => openTaskDialog()); $("#topNewTaskBtn").addEventListener("click", () => openTaskDialog());
@@ -3774,6 +3959,7 @@
       $("#touchAllBtn").addEventListener("click", () => { visibleTaskIds.forEach(id => { const t = state.tasks.find(task => task.id === id); if (t && !["Completed", "Archived"].includes(t.status)) t.lastTouchedAt = nowIso(); }); toast("Touched visible active tasks"); render(); });
 
       document.body.addEventListener("click", event => {
+        if (shouldPreserveNativeControlClick(event)) return;
         const focusModeBtn = event.target.closest("[data-focus-mode]");
         if (focusModeBtn) { state.settings.focusMode = focusModeBtn.dataset.focusMode || "normal"; toast(`Focus mode: ${focusModeBtn.textContent.trim()}`); render(); return; }
         const viewBtn = event.target.closest("[data-view]"); if (viewBtn) { currentView = viewBtn.dataset.view; state.settings.view = currentView; render(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
@@ -3805,18 +3991,24 @@
       });
 
       document.body.addEventListener("input", event => {
-        if (event.target.id === "searchInput") { state.settings.search = event.target.value; renderDebounced(); }
+        if (event.target.id === "searchInput") { state.settings.search = event.target.value; updateAllTasksResults(); }
         if (event.target.id === "categorySearchInput") { state.settings.categorySearch = event.target.value; renderDebounced(); }
       });
       document.body.addEventListener("change", event => {
         if (event.target.id === "aiAssistantToggle") { state.settings.useAIAssistant = event.target.checked; toast(event.target.checked ? "AI assistant enabled when backend is available" : "AI assistant disabled"); render(); }
-        if (event.target.id === "sortSelect") { state.settings.sort = event.target.value; render(); }
-        if (event.target.id === "statusFilter") { state.settings.status = event.target.value; render(); }
-        if (event.target.id === "categoryFilter") { state.settings.categoryFilter = event.target.value; render(); }
-        if (event.target.id === "dueFilter") { state.settings.dueFilter = event.target.value; render(); }
+        if (event.target.id === "sortSelect") { state.settings.sort = event.target.value; updateAllTasksResults(); }
+        if (event.target.id === "statusFilter") { state.settings.status = event.target.value; updateAllTasksResults(); }
+        if (event.target.id === "categoryFilter") { state.settings.categoryFilter = event.target.value; updateAllTasksResults(); }
+        if (event.target.id === "dueFilter") { state.settings.dueFilter = event.target.value; updateAllTasksResults(); }
         if (event.target.id === "categorySortSelect") { state.settings.categorySort = event.target.value; render(); }
         if (event.target.id === "hideEmptyCategories") { state.settings.hideEmptyCategories = event.target.checked; render(); }
       });
+    }
+
+    function shouldPreserveNativeControlClick(event) {
+      const interactive = event.target.closest("input, textarea, select, option, label, summary");
+      if (!interactive) return false;
+      return !event.target.closest("button, [data-action], [data-view], [data-focus-mode], [data-subtask-modal-action]");
     }
 
     let renderDebounceTimer = null;
@@ -3824,6 +4016,7 @@
 
     setupStaticControls();
     attachEvents();
+    setupCustomSelects();
     registerServiceWorker();
     render();
   </script>
