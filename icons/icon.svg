@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Personal Command Centre">
+  <defs>
+    <linearGradient id="bg" x1="84" y1="64" x2="430" y2="462" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#baf06a"/>
+      <stop offset="0.5" stop-color="#39b878"/>
+      <stop offset="1" stop-color="#0d3b27"/>
+    </linearGradient>
+    <linearGradient id="card" x1="150" y1="128" x2="360" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#ecfaef" stop-opacity="0.88"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="398" cy="110" r="74" fill="#ffffff" opacity="0.16"/>
+  <circle cx="104" cy="408" r="92" fill="#061f15" opacity="0.16"/>
+  <rect x="128" y="118" width="256" height="276" rx="44" fill="url(#card)" stroke="#ffffff" stroke-opacity="0.7" stroke-width="8"/>
+  <path d="M177 202h158" stroke="#0d3b27" stroke-width="28" stroke-linecap="round" opacity="0.94"/>
+  <path d="M177 274h120" stroke="#1d7a4e" stroke-width="28" stroke-linecap="round" opacity="0.9"/>
+  <path d="M177 346h88" stroke="#289963" stroke-width="28" stroke-linecap="round" opacity="0.86"/>
+  <path d="M333 326l26 26 52-62" fill="none" stroke="#baf06a" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

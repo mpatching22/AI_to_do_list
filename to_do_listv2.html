@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d3b27" />
+  <meta name="color-scheme" content="light" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Command Centre" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Personal Command Centre</title>
   <style>
     :root {
@@ -868,6 +876,323 @@
     .attention-title h4 { margin: 0; font-size: 14px; letter-spacing: -0.02em; color: var(--green-900); }
     .attention-title span { color: var(--muted); font-size: 12px; font-weight: 800; }
 
+    .assistant-panel {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.90), rgba(248,252,248,0.78)),
+        radial-gradient(circle at 92% 4%, rgba(185,240,106,0.18), transparent 13rem);
+    }
+
+    .assistant-insights, .cleanup-list, .assistant-suggestion-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .assistant-insight, .cleanup-suggestion {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 11px;
+      border-radius: 17px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(22,99,63,0.10);
+      box-shadow: 0 6px 16px rgba(15,61,41,0.045);
+    }
+
+    .assistant-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: var(--green-950);
+      background: linear-gradient(135deg, var(--green-300), var(--lime));
+      font-weight: 950;
+      box-shadow: 0 7px 16px rgba(53,183,121,0.14);
+    }
+
+    .assistant-insight strong, .cleanup-suggestion strong {
+      display: block;
+      color: var(--green-950);
+      font-size: 13.5px;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+    }
+
+    .assistant-insight span, .cleanup-suggestion span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .assistant-reason {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 16px;
+      background: rgba(185,240,106,0.14);
+      border: 1px solid rgba(185,240,106,0.24);
+      color: rgba(247,255,248,0.84);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .task-card .assistant-reason {
+      color: var(--green-900);
+      background: rgba(185,240,106,0.12);
+      border-color: rgba(40,153,99,0.16);
+    }
+
+    .cleanup-suggestion {
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .cleanup-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .assistant-breakdown-panel {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.84), rgba(240,250,242,0.70));
+      border: 1px solid rgba(22,99,63,0.12);
+    }
+
+    .assistant-breakdown-panel.show {
+      display: grid;
+      gap: 10px;
+    }
+
+    .assistant-breakdown-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .assistant-breakdown-head strong {
+      display: block;
+      color: var(--green-950);
+      font-size: 14px;
+      letter-spacing: -0.015em;
+    }
+
+    .assistant-breakdown-head span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .assistant-suggestion-row {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 8px 9px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(22,99,63,0.09);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .assistant-suggestion-row input { accent-color: var(--green-600); }
+
+    .assistant-breakdown-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .assistant-review-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .daily-briefing {
+      padding: clamp(18px, 3vw, 26px);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 90% 6%, rgba(185,240,106,0.20), transparent 14rem),
+        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(240,250,242,0.78));
+      border: 1px solid rgba(22,99,63,0.12);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .briefing-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 9px;
+      margin: 14px 0;
+    }
+
+    .briefing-stat {
+      padding: 11px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(22,99,63,0.09);
+    }
+
+    .briefing-stat strong {
+      display: block;
+      color: var(--green-950);
+      font-size: 22px;
+      letter-spacing: -0.045em;
+    }
+
+    .briefing-stat span {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 850;
+    }
+
+    .focus-mode-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(22,99,63,0.055);
+      border: 1px solid rgba(22,99,63,0.08);
+    }
+
+    .focus-mode-btn {
+      border-radius: 999px;
+      padding: 8px 11px;
+      background: rgba(255,255,255,0.76);
+      color: var(--green-900);
+      border: 1px solid rgba(22,99,63,0.10);
+      font-size: 12px;
+      font-weight: 900;
+      transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .focus-mode-btn:hover { transform: translateY(-1px); border-color: rgba(22,99,63,0.22); }
+    .focus-mode-btn.active { background: linear-gradient(135deg, var(--lime), var(--green-500)); color: var(--green-950); border-color: transparent; }
+
+    .assistant-feedback {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+    }
+
+    .feedback-btn {
+      border-radius: 999px;
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(22,99,63,0.10);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .feedback-btn:hover { color: var(--green-900); border-color: rgba(22,99,63,0.22); }
+    .feedback-btn.active { background: var(--green-100); color: var(--green-900); }
+
+    .assistant-review-section {
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(22,99,63,0.10);
+      box-shadow: 0 8px 22px rgba(15,61,41,0.055);
+    }
+
+    .assistant-review-section + .assistant-review-section { margin-top: 14px; }
+
+    .ai-settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(22,99,63,0.10);
+    }
+
+    .ai-settings-row p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.35;
+      max-width: 760px;
+    }
+
+    .ai-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green-900);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .ai-toggle input { accent-color: var(--green-600); width: 18px; height: 18px; }
+
+    .ai-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(22,99,63,0.055);
+      border: 1px solid rgba(22,99,63,0.10);
+    }
+
+    .ai-panel h4 {
+      margin: 0;
+      color: var(--green-950);
+      font-size: 14px;
+      letter-spacing: -0.015em;
+    }
+
+    .ai-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+
+    .ai-suggestion-card {
+      padding: 10px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(22,99,63,0.09);
+    }
+
+    .ai-suggestion-card strong {
+      display: block;
+      color: var(--green-950);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .ai-suggestion-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     .life-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
     .life-card {
       padding: 12px;
@@ -1007,11 +1332,29 @@
       .main { padding: 22px 16px 42px; }
       .topbar { flex-direction: column; }
       .brain-row { grid-template-columns: 1fr; }
+      .btn, .ghost-on-dark, .nav-button, .input, .select, .brain-input, .check-pill {
+        min-height: 44px;
+      }
+      .btn.small {
+        min-height: 40px;
+        padding: 9px 12px;
+      }
+      .btn.icon {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      .sidebar-actions, .top-actions, .task-actions, .compact-actions {
+        gap: 9px;
+      }
       .stat-grid, .glance-grid, .archive-metric-grid, .archive-hero-strip, .view-controls, .form-grid, .check-grid { grid-template-columns: 1fr; }
       .timeline-row, .compact-row, .archive-row, .archive-row.win, .archive-time-group { grid-template-columns: 1fr; }
       .archive-row.win::before { width: 100%; height: 4px; }
       .archive-time-label { position: relative; top: auto; text-align: left; }
       .archive-time-items { padding-left: 0; border-left: 0; }
+      .cleanup-suggestion { grid-template-columns: 34px minmax(0, 1fr); }
+      .cleanup-actions { grid-column: 1 / -1; justify-content: flex-start; }
+      .assistant-review-layout, .briefing-grid { grid-template-columns: 1fr; }
+      .assistant-panel, .daily-briefing, .assistant-review-section { padding: 14px; }
       .compact-actions { justify-content: flex-start; }
     }
 
@@ -1653,12 +1996,15 @@
                     <span id="subtaskModalPercent">No subtasks yet</span>
                   </div>
                   <div class="subtask-modal-actions">
+                    <button class="btn small soft" type="button" data-subtask-modal-action="generate-ai-breakdown">AI breakdown</button>
+                    <button class="btn small soft" type="button" data-subtask-modal-action="generate-breakdown">Break into subtasks</button>
                     <button class="btn small soft" type="button" data-subtask-modal-action="clear-completed">Clear completed</button>
                     <button class="btn small soft" type="button" data-subtask-modal-action="mark-incomplete">Mark all incomplete</button>
                     <button class="btn small primary" type="button" data-subtask-modal-action="add">＋ Add subtask</button>
                   </div>
                 </div>
                 <div class="subtask-progress" aria-hidden="true"><div class="subtask-progress-fill" id="subtaskModalProgressFill"></div></div>
+                <div class="assistant-breakdown-panel" id="assistantBreakdownPreview"></div>
                 <div class="subtask-edit-list" id="subtaskEditList"></div>
                 <p class="subtask-help">Press Enter inside a subtask to add another. Empty rows are ignored when saving.</p>
               </div>
@@ -1777,6 +2123,7 @@
 
     const VIEWS = [
       { id: "dashboard", icon: "⌂", label: "Dashboard" },
+      { id: "assistant", icon: "⌁", label: "Assistant Review" },
       { id: "all", icon: "☷", label: "All Tasks" },
       { id: "priority", icon: "◆", label: "Priority View" },
       { id: "category", icon: "▦", label: "Category View" },
@@ -1793,6 +2140,10 @@
     let visibleTaskIds = [];
     let pendingDeleteCategoryId = null;
     let modalSubtasks = [];
+    let modalAssistantSuggestions = [];
+    let modalAssistantApplied = false;
+    let latestAIResult = null;
+    let latestAIStatus = "";
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -1913,7 +2264,7 @@
     }
 
     function defaultSettings() {
-      return { view: "dashboard", sort: "smart", search: "", status: "active", categoryFilter: "all", dueFilter: "all", categorySearch: "", categorySort: "active", hideEmptyCategories: false, categoryFocus: "" };
+      return { view: "dashboard", sort: "smart", search: "", status: "active", categoryFilter: "all", dueFilter: "all", categorySearch: "", categorySort: "active", hideEmptyCategories: false, categoryFocus: "", focusMode: "normal", assistantFeedback: [], useAIAssistant: false, aiBackendUrl: "http://localhost:8787/api/assistant" };
     }
 
     function migrateState(data) {
@@ -1933,11 +2284,14 @@
       });
 
       const tasks = rawTasks.map(task => normalizeTask(task, categories));
+      const settings = { ...defaultSettings(), ...(data?.settings || {}) };
+      settings.assistantFeedback = Array.isArray(settings.assistantFeedback) ? settings.assistantFeedback : [];
+      settings.focusMode = ["normal", "deep", "low", "quick", "deadline"].includes(settings.focusMode) ? settings.focusMode : "normal";
       return {
         version: APP_VERSION,
         categories,
         tasks,
-        settings: { ...defaultSettings(), ...(data?.settings || {}) },
+        settings,
         meta: { createdAt: data?.meta?.createdAt || nowIso(), updatedAt: nowIso(), migratedFrom: data?.version || "unknown" }
       };
     }
@@ -1968,14 +2322,18 @@
         lastTouchedAt: task?.lastTouchedAt || created,
         completedAt: task?.completedAt || null,
         archivedAt: task?.archivedAt || null,
-        manualBoost: clampNumber(task?.manualBoost ?? 0, -3, 3)
+        manualBoost: clampNumber(task?.manualBoost ?? 0, -3, 3),
+        assistantNotes: task?.assistantNotes || "",
+        lastSuggestedAt: task?.lastSuggestedAt || null,
+        breakdownGeneratedAt: task?.breakdownGeneratedAt || null,
+        smartTags: Array.isArray(task?.smartTags) ? task.smartTags : []
       };
     }
 
     function makeTask(overrides = {}, categories = state?.categories || defaultCategories()) {
       const created = overrides.createdAt || nowIso();
       return normalizeTask({
-        id: uid(), title: "Untitled task", notes: "", categories: [], tags: [], dueDate: "", startDate: "", timeline: "", importance: 3, urgency: 3, effort: 3, energy: "Medium", status: "Inbox", subtasks: [], links: [], waitingOn: "", recurring: { type: "none", intervalDays: 7 }, createdAt: created, lastTouchedAt: overrides.lastTouchedAt || created, completedAt: null, archivedAt: null, manualBoost: 0, ...overrides
+        id: uid(), title: "Untitled task", notes: "", categories: [], tags: [], dueDate: "", startDate: "", timeline: "", importance: 3, urgency: 3, effort: 3, energy: "Medium", status: "Inbox", subtasks: [], links: [], waitingOn: "", recurring: { type: "none", intervalDays: 7 }, createdAt: created, lastTouchedAt: overrides.lastTouchedAt || created, completedAt: null, archivedAt: null, manualBoost: 0, assistantNotes: "", lastSuggestedAt: null, breakdownGeneratedAt: null, smartTags: [], ...overrides
       }, categories);
     }
 
@@ -2095,6 +2453,44 @@
       return Math.max(0, Math.round(score));
     }
 
+    const FOCUS_MODES = [
+      { id: "normal", label: "Normal" },
+      { id: "deep", label: "Deep Work" },
+      { id: "low", label: "Low Energy" },
+      { id: "quick", label: "Quick Wins" },
+      { id: "deadline", label: "Deadline Mode" }
+    ];
+
+    function currentFocusMode() { return state.settings.focusMode || "normal"; }
+
+    function focusAdjustedScore(task, mode = currentFocusMode()) {
+      let score = taskScore(task);
+      const d = daysUntil(task.dueDate);
+      if (mode === "low") {
+        if (task.energy === "Low") score += 35;
+        if (Number(task.effort) <= 2) score += 22;
+        if (task.energy === "High" || Number(task.effort) >= 4) score -= 32;
+      }
+      if (mode === "deep") {
+        if (Number(task.importance) >= 4 && Number(task.effort) >= 3) score += 34;
+        if (task.energy === "High") score += 12;
+        if (Number(task.effort) <= 1) score -= 12;
+      }
+      if (mode === "quick") {
+        if (Number(task.effort) <= 2) score += 38;
+        if (task.energy === "Low") score += 12;
+        if (Number(task.effort) >= 4) score -= 30;
+      }
+      if (mode === "deadline") {
+        if (d !== null && d < 0) score += 48;
+        else if (d === 0) score += 40;
+        else if (d !== null && d <= 3) score += 32;
+        else if (!task.dueDate) score -= 22;
+      }
+      score += assistantFeedbackScore(task);
+      return Math.max(0, Math.round(score));
+    }
+
     function taskReasons(task) {
       const reasons = [];
       const d = daysUntil(task.dueDate);
@@ -2111,6 +2507,322 @@
       return reasons.slice(0, 4);
     }
 
+    function buildTaskContext(task) {
+      const categories = (task.categories || []).map(id => categoryById(id, true)).filter(Boolean);
+      const text = [task.title, task.notes, task.timeline, task.waitingOn, ...(task.tags || []), ...categories.flatMap(c => [c.name, ...(c.keywords || [])])].join(" ").toLowerCase();
+      return {
+        task,
+        text,
+        categories,
+        categoryNames: categories.map(c => c.name),
+        dueIn: daysUntil(task.dueDate),
+        ignoredDays: daysSince(task.lastTouchedAt || task.createdAt),
+        subtaskTexts: normalizeSubtasks(task.subtasks).map(s => s.text.toLowerCase()),
+        isRecurring: Boolean(task.recurring?.type && task.recurring.type !== "none")
+      };
+    }
+
+    function assistantFeedbackItems() {
+      return Array.isArray(state.settings.assistantFeedback) ? state.settings.assistantFeedback : [];
+    }
+
+    function assistantFeedbackKey(kind, subtype, taskId = "", categoryId = "") {
+      return [kind || "item", subtype || "general", taskId || "", categoryId || ""].join(":");
+    }
+
+    function latestAssistantFeedback(kind, subtype, taskId = "", categoryId = "") {
+      const key = assistantFeedbackKey(kind, subtype, taskId, categoryId);
+      return [...assistantFeedbackItems()].reverse().find(item => item.key === key) || null;
+    }
+
+    function assistantFeedbackCount(predicate) {
+      return assistantFeedbackItems().filter(predicate).length;
+    }
+
+    function isAssistantHidden(kind, subtype, taskId = "", categoryId = "") {
+      const value = latestAssistantFeedback(kind, subtype, taskId, categoryId)?.value;
+      return value === "hide" || value === "done";
+    }
+
+    function assistantFeedbackScore(task) {
+      const categories = task.categories || [];
+      const helpful = assistantFeedbackCount(f => f.kind === "task" && f.value === "helpful" && categories.includes(f.categoryId));
+      const negative = assistantFeedbackCount(f => f.kind === "task" && f.value === "not-useful" && categories.includes(f.categoryId));
+      return Math.min(18, helpful * 4) - Math.min(16, negative * 4);
+    }
+
+    function recordAssistantFeedback(kind, subtype, value, taskId = "", categoryId = "") {
+      const entry = { key: assistantFeedbackKey(kind, subtype, taskId, categoryId), kind, subtype, value, taskId, categoryId, createdAt: nowIso() };
+      state.settings.assistantFeedback = assistantFeedbackItems().filter(item => item.key !== entry.key).concat(entry).slice(-180);
+      saveState();
+      toast(value === "hide" ? "Hidden from assistant suggestions" : value === "done" ? "Marked done for assistant review" : "Assistant feedback saved");
+      render();
+    }
+
+    function renderAssistantFeedback(kind, subtype, taskId = "", categoryId = "") {
+      const current = latestAssistantFeedback(kind, subtype, taskId, categoryId)?.value || "";
+      const options = [["helpful", "Helpful"], ["not-useful", "Not useful"], ["hide", "Hide"], ["done", "Done"]];
+      return `<div class="assistant-feedback">${options.map(([value, label]) => `<button class="feedback-btn ${current === value ? "active" : ""}" data-action="assistant-feedback" data-feedback-kind="${escapeHtml(kind)}" data-feedback-subtype="${escapeHtml(subtype)}" data-feedback-value="${escapeHtml(value)}" data-id="${escapeHtml(taskId)}" data-category-id="${escapeHtml(categoryId)}">${escapeHtml(label)}</button>`).join("")}</div>`;
+    }
+
+    function aiAssistantEnabled() { return Boolean(state.settings.useAIAssistant); }
+
+    function aiBackendUrl() {
+      // Change this setting if your local backend runs somewhere else.
+      return state.settings.aiBackendUrl || "http://localhost:8787/api/assistant";
+    }
+
+    function buildCompactTaskForAI(task) {
+      if (!task) return null;
+      return {
+        id: task.id,
+        title: task.title,
+        notes: task.notes,
+        categoryNames: (task.categories || []).map(categoryName),
+        dueDate: task.dueDate || "",
+        status: task.status,
+        importance: task.importance,
+        urgency: task.urgency,
+        effort: task.effort,
+        energy: task.energy,
+        waitingOn: task.waitingOn || "",
+        recurringType: task.recurring?.type || "none",
+        completed: Boolean(task.completedAt || task.status === "Completed"),
+        archived: Boolean(task.archivedAt || task.status === "Archived"),
+        subtasks: normalizeSubtasks(task.subtasks).map(s => ({ text: s.text, done: Boolean(s.done) }))
+      };
+    }
+
+    function assistantFeedbackSummary() {
+      const items = assistantFeedbackItems();
+      return {
+        helpful: items.filter(i => i.value === "helpful").length,
+        notUseful: items.filter(i => i.value === "not-useful").length,
+        hidden: items.filter(i => i.value === "hide").length,
+        done: items.filter(i => i.value === "done").length,
+        recent: items.slice(-12).map(i => ({ kind: i.kind, subtype: i.subtype, value: i.value, categoryId: i.categoryId }))
+      };
+    }
+
+    function buildAssistantPayload(mode, task = null) {
+      const active = sortTasks(activeTasks()).slice(0, 40);
+      return {
+        mode,
+        focusMode: currentFocusMode(),
+        task: task ? buildCompactTaskForAI(task) : null,
+        tasks: active.map(buildCompactTaskForAI),
+        localInsights: generateAssistantInsights(state.tasks),
+        userFeedback: assistantFeedbackSummary()
+      };
+    }
+
+    async function callAIAssistant(mode, task = null) {
+      if (!aiAssistantEnabled()) throw new Error("AI assistant is disabled.");
+      const response = await fetch(aiBackendUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildAssistantPayload(mode, task))
+      });
+      if (!response.ok) {
+        const details = await response.json().catch(() => ({}));
+        throw new Error(details.error || `AI backend returned ${response.status}`);
+      }
+      return normalizeAIResponse(await response.json());
+    }
+
+    function normalizeAIResponse(data) {
+      const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
+      return {
+        summary: String(data?.summary || "AI suggestions are ready.").slice(0, 500),
+        suggestions: suggestions.slice(0, 8).map(item => ({
+          type: ["subtask", "insight", "cleanup", "recommendation", "briefing"].includes(item?.type) ? item.type : "insight",
+          title: String(item?.title || "").slice(0, 180),
+          reason: String(item?.reason || "").slice(0, 300),
+          confidence: Math.max(0, Math.min(1, Number(item?.confidence ?? 0.5))),
+          actions: Array.isArray(item?.actions) ? item.actions.slice(0, 5).map(action => String(action).slice(0, 160)) : []
+        })).filter(item => item.title)
+      };
+    }
+
+    function renderAISettings() {
+      return `<div class="ai-settings-row"><div><label class="ai-toggle"><input type="checkbox" id="aiAssistantToggle" ${aiAssistantEnabled() ? "checked" : ""}> Use AI assistant when available</label><p>AI features send selected task context or compact task summaries to your local backend, which then calls OpenAI. The app keeps using the local rule-based assistant when offline or unavailable.</p></div><button class="btn small soft" data-action="ai-review">AI review</button></div>`;
+    }
+
+    function renderAIResultPanel(result = latestAIResult) {
+      if (!result) return latestAIStatus ? `<section class="ai-panel"><p>${escapeHtml(latestAIStatus)}</p></section>` : "";
+      return `<section class="ai-panel"><div class="section-header"><div><span class="eyebrow">AI Assistant</span><h3>${escapeHtml(result.summary)}</h3><p>Preview only. Apply changes manually from the relevant task or review suggestion.</p></div></div><div class="assistant-suggestion-list">${result.suggestions.map(item => `<article class="ai-suggestion-card"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.reason)} · confidence ${Math.round(item.confidence * 100)}%</span>${item.actions?.length ? `<div class="compact-meta">${item.actions.map(action => `<span class="chip">${escapeHtml(action)}</span>`).join("")}</div>` : ""}</article>`).join("") || emptyState("AI returned no suggestions.")}</div></section>`;
+    }
+
+    async function requestAIReview(mode = "review") {
+      latestAIStatus = "Asking AI assistant...";
+      latestAIResult = null;
+      render();
+      try {
+        latestAIResult = await callAIAssistant(mode);
+        latestAIStatus = "";
+        toast("AI suggestions ready");
+      } catch (error) {
+        latestAIResult = null;
+        latestAIStatus = `AI unavailable: ${error.message}. Showing local assistant suggestions instead.`;
+        toast("AI unavailable — using local assistant");
+      }
+      render();
+    }
+
+    function assistantDomainForTask(context) {
+      const names = context.categoryNames.join(" ").toLowerCase();
+      const text = `${context.text} ${names}`;
+      if (/uni|university|assignment|report|essay|exam|rubric|criteria|robotics|study|lecture|lab|thesis|quiz|draft|submit/.test(text)) return "uni";
+      if (/project|code|coding|github|app|website|bug|feature|implement|software|robot|automation|refactor|test|deploy|api|html|css|javascript|pwa/.test(text)) return "coding";
+      if (/admin|finance|tax|receipt|bill|form|bank|invoice|insurance|budget|accountant|application|renew|pay|document/.test(text)) return "admin";
+      if (/people|friend|message|text|call|coffee|catch|birthday|reply|follow up|girlfriend|family/.test(text)) return "people";
+      if (/fitness|gym|climb|workout|training|run|physio|stretch|boulder|hangboard|session/.test(text)) return "fitness";
+      if (/church|ministry|serve|worship|drum|bible|prayer|youth|sermon|roster|group|study/.test(text)) return "church";
+      return "generic";
+    }
+
+    function suggestSubtasksForTask(task) {
+      const context = buildTaskContext(task);
+      const domain = assistantDomainForTask(context);
+      const templates = {
+        uni: ["Open the assignment brief", "Review marking criteria", "Collect research, screenshots, or evidence", "Draft the key sections", "Add diagrams, results, or examples", "Proofread and format", "Submit final version"],
+        coding: ["Reproduce or define the issue", "Inspect the relevant files", "Make the smallest working change", "Run the main checks or tests", "Review edge cases", "Commit or save the working version"],
+        admin: ["Gather required documents", "Find the correct form or portal", "Complete the form or main action", "Verify details are correct", "Submit or send it", "Save confirmation or receipt"],
+        people: ["Choose the person and goal", "Draft the message in one sentence", "Send the message", "Follow up if there is no reply", "Schedule the time or next step"],
+        fitness: ["Choose the session goal", "Plan the warm-up", "Complete the main workout", "Cool down or stretch", "Record progress or notes"],
+        church: ["Confirm the service or group context", "Prepare the material or plan", "Rehearse or review", "Serve or deliver", "Follow up with any next steps"],
+        generic: ["Clarify the desired outcome", "Write the first tiny step", "Choose the first concrete action", "Complete the main action", "Review and close the loop"]
+      };
+      let suggestions = [...templates[domain]];
+      if (Number(task.effort) >= 4 || /overwhelm|stuck|big|hard|complex|massive|finish|complete/.test(context.text)) suggestions.unshift("Do a 5-minute first tiny step");
+      if (context.dueIn !== null && context.dueIn <= 2 && !suggestions.some(s => /submit|send|close|final/i.test(s))) suggestions.push("Prepare the final handoff");
+      if (Number(task.effort) >= 4 && !suggestions.some(s => /outline|plan/i.test(s))) suggestions.unshift("Outline the work into small steps");
+      if (task.waitingOn && !suggestions.some(s => /follow up/i.test(s))) suggestions.push(`Follow up with ${task.waitingOn}`);
+      if (context.isRecurring && !suggestions.some(s => /reset|next/i.test(s))) suggestions.push("Reset anything needed for the next recurrence");
+      const existing = new Set(context.subtaskTexts.map(normalizeAssistantText));
+      const seen = new Set();
+      return suggestions.filter(text => {
+        const key = normalizeAssistantText(text);
+        if (!key || existing.has(key) || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 8);
+    }
+
+    function normalizeAssistantText(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function getTaskRecommendationReasons(task) {
+      const reasons = [];
+      const d = daysUntil(task.dueDate);
+      if (d !== null) {
+        if (d < 0) reasons.push(`it is ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"} overdue`);
+        else if (d === 0) reasons.push("it is due today");
+        else if (d === 1) reasons.push("it is due tomorrow");
+        else if (d <= 7) reasons.push(`it is due in ${d} days`);
+      }
+      if (Number(task.importance) >= 4) reasons.push("high importance");
+      if (Number(task.urgency) >= 4) reasons.push("high urgency");
+      if (Number(task.effort) <= 2 && task.energy !== "High") reasons.push("it looks like a quick win");
+      if (Number(task.effort) >= 4) reasons.push("it likely needs deep work");
+      if (task.manualBoost > 0) reasons.push("you manually boosted it");
+      if (task.status === "Next") reasons.push("it is already marked Next");
+      if (task.status === "In Progress") reasons.push("it is already in progress");
+      const ignored = daysSince(task.lastTouchedAt || task.createdAt);
+      if (ignored >= 7) reasons.push(`it has been untouched for ${ignored} days`);
+      const category = (task.categories || []).map(categoryName).find(Boolean);
+      if (category && ["People / Friendships", "Admin / Finance", "Church / Ministry"].includes(category)) reasons.push(`${category} tasks get extra visibility`);
+      return reasons.slice(0, 4);
+    }
+
+    function recommendationSentence(task) {
+      const reasons = getTaskRecommendationReasons(task);
+      return reasons.length ? `Recommended because ${joinReadable(reasons)}.` : "Recommended by smart score using due date, priority, effort, status, and recent activity.";
+    }
+
+    function joinReadable(items) {
+      if (items.length <= 1) return items[0] || "";
+      if (items.length === 2) return `${items[0]} and ${items[1]}`;
+      return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
+    }
+
+    function generateAssistantInsights(tasks) {
+      const active = tasks.filter(t => !["Completed", "Archived"].includes(t.status));
+      const completed = completedOrArchivedTasks();
+      const overdue = active.filter(t => daysUntil(t.dueDate) !== null && daysUntil(t.dueDate) < 0);
+      const noDue = active.filter(t => !t.dueDate && Number(t.importance) >= 4);
+      const stale = active.filter(t => daysSince(t.lastTouchedAt || t.createdAt) >= 14 && !["Waiting On", "Blocked", "Someday"].includes(t.status));
+      const waiting = active.filter(t => t.status === "Waiting On" || hasCategory(t, "Waiting On"));
+      const doneWeek = completed.filter(t => daysSince(t.completedAt || t.archivedAt) <= 7).length;
+      const categoryCounts = allCategories().map(cat => ({ cat, count: active.filter(t => (t.categories || []).includes(cat.id)).length })).sort((a, b) => b.count - a.count);
+      const busiest = categoryCounts[0];
+      const insights = [];
+      if (overdue.length) {
+        const smallest = sortTasks(overdue, "smart").sort((a, b) => Number(a.effort) - Number(b.effort))[0];
+        insights.push({ icon: "!", subtype: "overdue", title: `${overdue.length} overdue task${overdue.length === 1 ? "" : "s"}`, detail: smallest ? `Start with "${smallest.title}" because it is the smallest overdue item.` : "Clear the smallest urgent one first." });
+      }
+      if (busiest?.count >= 3) insights.push({ icon: "▦", subtype: "busiest-category", title: `${busiest.cat.name} has the most active work`, detail: `${busiest.count} active task${busiest.count === 1 ? "" : "s"} are clustered there.` });
+      if (noDue.length) insights.push({ icon: "◷", subtype: "no-due", title: `${noDue.length} important task${noDue.length === 1 ? "" : "s"} have no due date`, detail: "Consider scheduling the one with the highest importance." });
+      if (stale.length) insights.push({ icon: "…", subtype: "stale", title: `${stale.length} task${stale.length === 1 ? "" : "s"} untouched for 14+ days`, detail: "Touch, schedule, archive, or break them down." });
+      if (waiting.length) insights.push({ icon: "↗", subtype: "waiting", title: `${waiting.length} waiting loop${waiting.length === 1 ? "" : "s"}`, detail: "Check whether any need a follow-up message." });
+      if (doneWeek) insights.push({ icon: "✓", subtype: "wins", title: `${doneWeek} completed this week`, detail: "Archive history shows useful momentum." });
+      const filtered = insights.filter(item => !isAssistantHidden("insight", item.subtype) && assistantFeedbackCount(f => f.kind === "insight" && f.subtype === item.subtype && f.value === "not-useful") < 2);
+      if (!filtered.length) filtered.push({ icon: "⌁", subtype: "empty", title: "Assistant is watching for patterns", detail: "Add due dates, categories, and subtasks to unlock sharper suggestions." });
+      return filtered.slice(0, 5);
+    }
+
+    function generateCleanupSuggestions(tasks) {
+      const active = tasks.filter(t => !["Completed", "Archived"].includes(t.status));
+      const suggestions = [];
+      active.filter(t => daysSince(t.lastTouchedAt || t.createdAt) >= 21 && !["Someday", "Waiting On"].includes(t.status)).slice(0, 3).forEach(task => suggestions.push({ type: "stale", task, title: "Stale active task", detail: `${daysSince(task.lastTouchedAt || task.createdAt)} days untouched. Break it down, touch it, or archive it.` }));
+      active.filter(t => t.status === "Someday" && daysSince(t.lastTouchedAt || t.createdAt) >= 30).slice(0, 2).forEach(task => suggestions.push({ type: "someday", task, title: "Old someday item", detail: "Review whether this is still useful or should be archived." }));
+      active.filter(t => !(t.categories || []).length).slice(0, 2).forEach(task => suggestions.push({ type: "category", task, title: "No category", detail: "Add a category so dashboards and assistant logic understand it better." }));
+      active.filter(t => !t.dueDate && Number(t.importance) >= 4).slice(0, 3).forEach(task => suggestions.push({ type: "schedule", task, title: "Important with no due date", detail: "Give it a date or mark it Next if it should stay visible." }));
+      active.filter(t => isVagueTaskTitle(t.title)).slice(0, 3).forEach(task => suggestions.push({ type: "vague", task, title: "Vague title", detail: "Rename it with a clear outcome and first action." }));
+      allCategories().forEach(cat => {
+        const count = active.filter(t => (t.categories || []).includes(cat.id)).length;
+        if (count >= 8) suggestions.push({ type: "category-load", category: cat, title: "Overloaded category", detail: `${cat.name} has ${count} active tasks. Consider focusing that category or splitting it.` });
+      });
+      tasks.filter(t => t.completedAt && t.status !== "Archived" && daysSince(t.completedAt) >= 14).slice(0, 3).forEach(task => suggestions.push({ type: "archive", task, title: "Completed but not archived", detail: "Archive it if you are done seeing it in active contexts." }));
+      return suggestions.filter(item => {
+        const taskId = item.task?.id || "";
+        const categoryId = item.category?.id || item.task?.categories?.[0] || "";
+        if (isAssistantHidden("cleanup", item.type, taskId, categoryId)) return false;
+        return assistantFeedbackCount(f => f.kind === "cleanup" && f.subtype === item.type && f.value === "not-useful") < 3;
+      }).slice(0, 6);
+    }
+
+    function isVagueTaskTitle(title) {
+      const text = String(title || "").trim().toLowerCase();
+      return /^(stuff|thing|things|fix|do this|todo|task|misc|sort out|work on it)$/.test(text) || text.length <= 4;
+    }
+
+    function applySuggestedSubtasks(taskId, selectedSuggestions) {
+      const clean = [...new Set((selectedSuggestions || []).map(s => String(s || "").trim()).filter(Boolean))];
+      if (!clean.length) return 0;
+      if (taskId === "modal") {
+        syncModalSubtaskInputs();
+        const existing = new Set(meaningfulModalSubtasks().map(s => normalizeAssistantText(s.text)));
+        const added = clean.filter(text => !existing.has(normalizeAssistantText(text))).map(text => normalizeSubtaskForEditor({ text, done: false }));
+        modalSubtasks.push(...added);
+        modalAssistantSuggestions = [];
+        renderAssistantBreakdownPreview([]);
+        renderSubtaskEditor(added[0]?.id || null);
+        return added.length;
+      }
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return 0;
+      const existing = new Set(normalizeSubtasks(task.subtasks).map(s => normalizeAssistantText(s.text)));
+      const added = clean.filter(text => !existing.has(normalizeAssistantText(text))).map(text => normalizeSubtask({ text, done: false }));
+      task.subtasks = [...normalizeSubtasks(task.subtasks), ...added];
+      task.breakdownGeneratedAt = nowIso();
+      task.lastSuggestedAt = nowIso();
+      task.lastTouchedAt = nowIso();
+      saveState();
+      return added.length;
+    }
+
     function deadlineClass(task) { const d = daysUntil(task.dueDate); if (d === null) return task.status === "Someday" ? "someday" : ""; if (d < 0) return "overdue"; if (d === 0) return "today"; return ""; }
     function dueLabel(task) { const d = daysUntil(task.dueDate); if (!task.dueDate) return "No deadline"; if (d < 0) return `Overdue · ${fmtDate(task.dueDate)}`; if (d === 0) return `Today · ${fmtDate(task.dueDate)}`; if (d <= 7) return `Soon · ${fmtDate(task.dueDate)}`; return `Due · ${fmtDate(task.dueDate)}`; }
 
@@ -2119,7 +2831,7 @@
       const byDate = (a, b) => { if (!a.dueDate && !b.dueDate) return new Date(a.createdAt) - new Date(b.createdAt); if (!a.dueDate) return 1; if (!b.dueDate) return -1; return parseIso(a.dueDate) - parseIso(b.dueDate); };
       const categorySortName = t => (t.categories || []).map(categoryName).sort()[0] || "zzz";
       const sorts = {
-        smart: (a, b) => taskScore(b) - taskScore(a) || byDate(a, b), priority: (a, b) => taskScore(b) - taskScore(a), due: byDate, created: (a, b) => new Date(b.createdAt) - new Date(a.createdAt), status: (a, b) => a.status.localeCompare(b.status), energy: (a, b) => ENERGY_LEVELS.indexOf(a.energy) - ENERGY_LEVELS.indexOf(b.energy), effort: (a, b) => Number(a.effort) - Number(b.effort), category: (a, b) => categorySortName(a).localeCompare(categorySortName(b))
+        smart: (a, b) => focusAdjustedScore(b) - focusAdjustedScore(a) || byDate(a, b), priority: (a, b) => focusAdjustedScore(b) - focusAdjustedScore(a), due: byDate, created: (a, b) => new Date(b.createdAt) - new Date(a.createdAt), status: (a, b) => a.status.localeCompare(b.status), energy: (a, b) => ENERGY_LEVELS.indexOf(a.energy) - ENERGY_LEVELS.indexOf(b.energy), effort: (a, b) => Number(a.effort) - Number(b.effort), category: (a, b) => categorySortName(a).localeCompare(categorySortName(b))
       };
       return copy.sort(sorts[sort] || sorts.smart);
     }
@@ -2132,7 +2844,8 @@
     function countForView(view) {
       const active = activeTasks();
       if (view === "dashboard" || view === "all") return active.length;
-      if (view === "priority") return active.filter(t => taskScore(t) >= 90).length;
+      if (view === "assistant") return generateCleanupSuggestions(state.tasks).length + generateAssistantInsights(state.tasks).length;
+      if (view === "priority") return active.filter(t => focusAdjustedScore(t) >= 90).length;
       if (view === "category") return allCategories().filter(c => active.some(t => t.categories.includes(c.id))).length;
       if (view === "timeline") return active.filter(t => t.dueDate).length;
       if (view === "inbox") return active.filter(t => t.status === "Inbox" || !t.categories.length).length;
@@ -2154,6 +2867,7 @@
       $("#viewSubtitle").textContent = subtitleForView(currentView);
       const content = $("#appContent");
       if (currentView === "dashboard") content.innerHTML = renderDashboard();
+      if (currentView === "assistant") content.innerHTML = renderAssistantReviewView();
       if (currentView === "all") content.innerHTML = renderAllTasksView();
       if (currentView === "priority") content.innerHTML = renderPriorityView();
       if (currentView === "category") content.innerHTML = renderCategoryView();
@@ -2165,7 +2879,7 @@
     }
 
     function subtitleForView(view) {
-      const descriptions = { dashboard: "A broad overview plus a clear recommendation for what deserves attention next.", all: "Search deeply by title, notes, categories, tags, waiting-on person, due status, and completion state.", priority: "Tasks grouped by smart score, not just low/medium/high.", category: "Manage custom life areas, category stats, focused task lists, and smart quick-add keywords.", timeline: "Deadline tasks separated into overdue, today, this week, upcoming, and no-deadline.", inbox: "The fast capture area for unsorted thoughts and tasks you do not want to lose.", waiting: "Things paused because someone else needs to reply, decide, send, or approve.", someday: "Useful ideas without letting them crowd your real next actions.", archive: "Progress history, completed tasks, archived tasks, and simple stats." };
+      const descriptions = { dashboard: "A broad overview plus a clear recommendation for what deserves attention next.", assistant: "Daily briefing, focus modes, recommendations, cleanup suggestions, and local feedback.", all: "Search deeply by title, notes, categories, tags, waiting-on person, due status, and completion state.", priority: "Tasks grouped by smart score, not just low/medium/high.", category: "Manage custom life areas, category stats, focused task lists, and smart quick-add keywords.", timeline: "Deadline tasks separated into overdue, today, this week, upcoming, and no-deadline.", inbox: "The fast capture area for unsorted thoughts and tasks you do not want to lose.", waiting: "Things paused because someone else needs to reply, decide, send, or approve.", someday: "Useful ideas without letting them crowd your real next actions.", archive: "Progress history, completed tasks, archived tasks, and simple stats." };
       return descriptions[view] || descriptions.dashboard;
     }
 
@@ -2177,16 +2891,67 @@
       const recs = actionable.slice(0, 5);
       const needs = { overdue: sorted.filter(t => daysUntil(t.dueDate) !== null && daysUntil(t.dueDate) < 0).slice(0, 4), soon: sorted.filter(t => { const d = daysUntil(t.dueDate); return d !== null && d >= 0 && d <= 7; }).slice(0, 4), forgotten: sorted.filter(t => !t.dueDate && !["Someday", "Waiting On", "Blocked"].includes(t.status)).sort((a, b) => daysSince(b.lastTouchedAt) - daysSince(a.lastTouchedAt)).slice(0, 4), waiting: sorted.filter(t => t.status === "Waiting On" || hasCategory(t, "Waiting On")).slice(0, 4) };
       const completed = completedOrArchivedTasks().sort((a, b) => new Date(b.completedAt || b.archivedAt || b.createdAt) - new Date(a.completedAt || a.archivedAt || a.createdAt));
-      return `${renderDashboardStats(getStats(), completed)}<div class="dashboard-layout"><div class="dashboard-main">${renderFocusPanel(recs)}${renderLifeAreas(sorted)}</div><div class="dashboard-side">${renderNeedsAttention(needs)}${renderProgressPanel(active, completed)}</div></div>`;
+      return `${renderDashboardStats(getStats(), completed)}${renderDailyBriefingPanel(sorted)}<div class="dashboard-layout"><div class="dashboard-main">${renderFocusPanel(recs)}${renderAssistantInsightsPanel(state.tasks)}${renderLifeAreas(sorted)}</div><div class="dashboard-side">${renderAISettings()}${renderAIResultPanel()}${renderNeedsAttention(needs)}${renderProgressPanel(active, completed)}${renderCleanupPanel(state.tasks)}</div></div>`;
     }
 
     function statCard(number, label) { return `<div class="stat-card"><strong>${number}</strong><span>${escapeHtml(label)}</span></div>`; }
     function glanceCard(number, label) { return `<div class="glance-card"><strong>${number}</strong><span>${escapeHtml(label)}</span></div>`; }
     function renderDashboardStats(stats, completed) { const doneWeek = completed.filter(t => daysSince(t.completedAt || t.archivedAt) <= 7).length; return `<section class="glance-grid" aria-label="At a glance">${glanceCard(stats.active, "Active")}${glanceCard(stats.overdue, "Overdue")}${glanceCard(stats.dueSoon, "Due soon")}${glanceCard(stats.waiting, "Waiting on")}${glanceCard(doneWeek, "Done this week")}</section>`; }
 
+    function renderFocusModeControls() {
+      const mode = currentFocusMode();
+      return `<div class="focus-mode-bar" aria-label="Focus mode">${FOCUS_MODES.map(item => `<button class="focus-mode-btn ${mode === item.id ? "active" : ""}" data-focus-mode="${item.id}" type="button">${escapeHtml(item.label)}</button>`).join("")}</div>`;
+    }
+
+    function dailyBriefing(active = sortTasks(activeTasks())) {
+      const stats = getStats();
+      const waiting = active.filter(t => t.status === "Waiting On" || hasCategory(t, "Waiting On"));
+      const quickWins = active.filter(t => Number(t.effort) <= 2 && t.energy !== "High" && !["Waiting On", "Blocked", "Someday"].includes(t.status));
+      const categoryCounts = allCategories().map(cat => ({ cat, count: active.filter(t => (t.categories || []).includes(cat.id)).length })).sort((a, b) => b.count - a.count);
+      const busiest = categoryCounts.find(item => item.count > 0);
+      const suggestedMode = stats.overdue || stats.today ? "deadline" : quickWins.length >= 3 ? "quick" : active.some(t => Number(t.importance) >= 4 && Number(t.effort) >= 4) ? "deep" : "normal";
+      const modeLabel = FOCUS_MODES.find(m => m.id === suggestedMode)?.label || "Normal";
+      const summary = stats.overdue || stats.today
+        ? `Today has deadline pressure. Start with the highest-importance due item, then use ${quickWins.length ? "one quick win" : "a small next step"} to keep momentum.`
+        : busiest ? `Today looks ${busiest.cat.name}-heavy. Start with one quick win, then protect time for the highest-importance task in that area.` : "Today has a clear runway. Pick one meaningful task and keep the system light.";
+      return { stats, waiting, quickWins, top: active.filter(t => !["Waiting On", "Blocked", "Someday"].includes(t.status)).slice(0, 3), suggestedMode, modeLabel, summary };
+    }
+
+    function renderDailyBriefingPanel(active = sortTasks(activeTasks())) {
+      const briefing = dailyBriefing(active);
+      return `<section class="daily-briefing"><div class="section-header"><div><span class="eyebrow">Daily Briefing</span><h3>${escapeHtml(briefing.summary)}</h3><p>Current focus mode: ${escapeHtml(FOCUS_MODES.find(m => m.id === currentFocusMode())?.label || "Normal")} · Suggested: ${escapeHtml(briefing.modeLabel)}</p></div><div class="top-actions"><button class="btn small soft" data-action="ai-briefing">Improve briefing with AI</button><button class="btn small soft" data-view="assistant">Open review</button></div></div>${renderFocusModeControls()}<div class="briefing-grid"><div class="briefing-stat"><strong>${briefing.stats.overdue}</strong><span>overdue</span></div><div class="briefing-stat"><strong>${briefing.stats.today}</strong><span>due today</span></div><div class="briefing-stat"><strong>${briefing.waiting.length}</strong><span>waiting followups</span></div><div class="briefing-stat"><strong>${briefing.quickWins.length}</strong><span>quick wins</span></div><div class="briefing-stat"><strong>${escapeHtml(briefing.modeLabel)}</strong><span>suggested mode</span></div></div><div class="task-list">${briefing.top.map(t => renderCompactTaskRow(t, { actions: true, reasons: true })).join("") || emptyState("No top tasks right now — clear runway.")}</div></section>`;
+    }
+
     function renderFocusPanel(recs) {
       const primary = recs[0], secondary = recs.slice(1, 5);
       return `<section class="panel section-card focus-panel"><div class="section-header"><div><span class="eyebrow">Focus Panel</span><h3>Do This Next</h3><p>Chosen using due date, importance, effort, ignored time, and personal-life visibility.</p></div></div>${primary ? `<div class="focus-grid">${renderTaskCard(primary, { featured: true })}<div class="task-list">${secondary.length ? secondary.map(t => renderCompactTaskRow(t, { actions: true, reasons: true })).join("") : emptyState("Once you add more tasks, secondary recommendations will appear here.")}</div></div>` : emptyState("Nothing urgent is fighting for attention. Add a brain dump task or choose a next action.")}</section>`;
+    }
+
+    function renderAssistantInsightsPanel(tasks) {
+      const insights = generateAssistantInsights(tasks);
+      return `<section class="panel section-card assistant-panel"><div class="section-header"><div><span class="eyebrow">Command Assistant</span><h3>Local smart insights</h3><p>Rule-based suggestions from your task data. No network calls unless you enable and ask AI.</p></div><div class="top-actions"><button class="btn small soft" data-action="ai-review">Ask AI</button><button class="btn small soft" data-view="assistant">Review</button></div></div><div class="assistant-insights">${insights.map(item => renderAssistantInsight(item)).join("")}</div></section>`;
+    }
+
+    function renderAssistantInsight(item) {
+      const subtype = item.subtype || normalizeAssistantText(item.title).slice(0, 42) || "insight";
+      if (isAssistantHidden("insight", subtype)) return "";
+      return `<article class="assistant-insight"><span class="assistant-icon">${escapeHtml(item.icon)}</span><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span>${renderAssistantFeedback("insight", subtype)}</div></article>`;
+    }
+
+    function renderCleanupPanel(tasks) {
+      const suggestions = generateCleanupSuggestions(tasks);
+      return `<section class="panel section-card assistant-panel"><div class="section-header"><div><span class="eyebrow">Suggest Cleanup</span><h3>Smart cleanup queue</h3><p>Assistant flags tasks that may need scheduling, renaming, touching, or archiving.</p></div><div class="top-actions"><button class="btn small soft" data-action="ai-cleanup">Ask AI</button><button class="btn small soft" data-view="assistant">Review</button></div></div><div class="cleanup-list">${suggestions.map(renderCleanupSuggestion).join("") || emptyState("No cleanup needed — your system is tidy.")}</div></section>`;
+    }
+
+    function renderCleanupSuggestion(item) {
+      const task = item.task;
+      const category = item.category;
+      const actions = task ? `<button class="btn small soft" data-action="edit" data-id="${task.id}">Edit</button>${!["Completed", "Archived"].includes(task.status) ? `<button class="btn small soft" data-action="touch" data-id="${task.id}">Touch</button>` : ""}${item.type === "archive" || item.type === "stale" ? `<button class="btn small soft" data-action="archive" data-id="${task.id}">Archive</button>` : ""}` : category ? `<button class="btn small soft" data-action="focus-category" data-id="${category.id}">Open</button>` : "";
+      const title = task ? `${item.title}: ${task.title}` : item.title;
+      const taskId = task?.id || "";
+      const categoryId = category?.id || task?.categories?.[0] || "";
+      if (isAssistantHidden("cleanup", item.type, taskId, categoryId)) return "";
+      return `<article class="cleanup-suggestion"><span class="assistant-icon">${item.type === "archive" ? "✓" : item.type === "schedule" ? "◷" : item.type === "category-load" ? "▦" : "?"}</span><div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(item.detail)}</span>${renderAssistantFeedback("cleanup", item.type, taskId, categoryId)}</div><div class="cleanup-actions">${actions}</div></article>`;
     }
 
     function renderNeedsAttention(groups) {
@@ -2235,7 +3000,7 @@
     }
 
     function renderTaskCard(task, options = {}) {
-      const score = taskScore(task), d = daysUntil(task.dueDate);
+      const score = focusAdjustedScore(task), d = daysUntil(task.dueDate);
       const deadlineChip = task.dueDate ? `<span class="chip deadline ${d < 0 ? "overdue" : d === 0 ? "today" : ""}">${escapeHtml(dueLabel(task))}</span>` : `<span class="chip">No deadline</span>`;
       const reasons = taskReasons(task).slice(0, options.featured ? 3 : 4).map(r => `<span class="chip reason">${escapeHtml(r)}</span>`).join("");
       const cats = (task.categories || []).slice(0, options.compact ? 2 : 4).map(categoryChip).join("");
@@ -2245,16 +3010,18 @@
       const waiting = task.waitingOn ? `<span class="chip waiting">Waiting on ${escapeHtml(task.waitingOn)}</span>` : "";
       const cardClass = [options.featured ? "featured-task" : "task-card", deadlineClass(task), task.status === "Completed" ? "completed" : "", task.status === "Someday" ? "someday" : ""].filter(Boolean).join(" ");
       const scoreClass = task.status === "Waiting On" ? "waiting" : task.status === "Completed" || task.status === "Archived" ? "done" : score >= 120 ? "hot" : "";
-      return `<article class="${cardClass}" data-task-id="${task.id}"><div class="task-top"><div class="task-main">${options.featured ? `<span class="eyebrow">Best next action</span>` : ""}<h4 class="task-title">${escapeHtml(task.title)}</h4>${task.notes && !options.compact ? `<p class="task-note">${escapeHtml(task.notes)}</p>` : ""}<div class="meta"><span class="chip status">${escapeHtml(task.status)}</span>${deadlineChip}${cats}${tags}${subProgress}${recurring}${waiting}${reasons}</div></div><div class="score-badge ${scoreClass}" title="Smart score">${score}</div></div>${renderSubtaskPreview(task, { featured: options.featured })}<div class="task-actions">${task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small primary" data-action="complete" data-id="${task.id}">Complete</button>` : ""}<button class="btn small soft" data-action="edit" data-id="${task.id}">Edit</button>${task.status !== "Archived" ? `<button class="btn small soft" data-action="archive" data-id="${task.id}">Archive</button>` : `<button class="btn small soft" data-action="unarchive" data-id="${task.id}">Unarchive</button>`}${task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small soft" data-action="touch" data-id="${task.id}">Touch</button>` : ""}<button class="btn small danger" data-action="delete" data-id="${task.id}">Delete</button></div></article>`;
+      const assistantReason = options.featured ? `<div class="assistant-reason">${escapeHtml(recommendationSentence(task))}${renderAssistantFeedback("task", "recommend", task.id, task.categories?.[0] || "")}</div>` : "";
+      const breakdownButton = task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small soft" data-action="break-subtasks" data-id="${task.id}">Break into subtasks</button>${aiAssistantEnabled() ? `<button class="btn small soft" data-action="ai-break-subtasks" data-id="${task.id}">AI breakdown</button>` : ""}` : "";
+      return `<article class="${cardClass}" data-task-id="${task.id}"><div class="task-top"><div class="task-main">${options.featured ? `<span class="eyebrow">Best next action</span>` : ""}<h4 class="task-title">${escapeHtml(task.title)}</h4>${task.notes && !options.compact ? `<p class="task-note">${escapeHtml(task.notes)}</p>` : ""}<div class="meta"><span class="chip status">${escapeHtml(task.status)}</span>${deadlineChip}${cats}${tags}${subProgress}${recurring}${waiting}${reasons}</div></div><div class="score-badge ${scoreClass}" title="Smart score">${score}</div></div>${assistantReason}${renderSubtaskPreview(task, { featured: options.featured })}<div class="task-actions">${task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small primary" data-action="complete" data-id="${task.id}">Complete</button>` : ""}<button class="btn small soft" data-action="edit" data-id="${task.id}">Edit</button>${breakdownButton}${task.status !== "Archived" ? `<button class="btn small soft" data-action="archive" data-id="${task.id}">Archive</button>` : `<button class="btn small soft" data-action="unarchive" data-id="${task.id}">Unarchive</button>`}${task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small soft" data-action="touch" data-id="${task.id}">Touch</button>` : ""}<button class="btn small danger" data-action="delete" data-id="${task.id}">Delete</button></div></article>`;
     }
 
     function renderCompactTaskRow(task, options = {}) {
-      const score = taskScore(task), reasons = options.reasons ? taskReasons(task).slice(0, 3).map(r => `<span class="chip reason">${escapeHtml(r)}</span>`).join("") : "";
+      const score = focusAdjustedScore(task), reasons = options.reasons ? taskReasons(task).slice(0, 3).map(r => `<span class="chip reason">${escapeHtml(r)}</span>`).join("") : "";
       const category = task.categories?.[0] ? categoryChip(task.categories[0]) : "";
       const waiting = task.waitingOn ? `<span class="chip waiting">${escapeHtml(task.waitingOn)}</span>` : "";
       const subProgress = renderSubtaskChip(task);
       const rowClass = ["compact-row", deadlineClass(task)].filter(Boolean).join(" ");
-      return `<article class="${rowClass}" data-task-id="${task.id}"><div class="compact-main"><p class="compact-title">${escapeHtml(task.title)}</p><div class="compact-meta"><span class="compact-score">${score}</span><span>${escapeHtml(dueLabel(task))}</span>${category}${waiting}${subProgress}${reasons}</div></div><div class="compact-actions">${options.actions && task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small primary" data-action="complete" data-id="${task.id}">Complete</button>` : ""}<button class="btn small soft" data-action="edit" data-id="${task.id}">Edit</button>${options.actions && task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small soft" data-action="touch" data-id="${task.id}">Touch</button>` : ""}</div></article>`;
+      return `<article class="${rowClass}" data-task-id="${task.id}"><div class="compact-main"><p class="compact-title">${escapeHtml(task.title)}</p><div class="compact-meta"><span class="compact-score">${score}</span><span>${escapeHtml(dueLabel(task))}</span>${category}${waiting}${subProgress}${reasons}</div></div><div class="compact-actions">${options.actions && task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small primary" data-action="complete" data-id="${task.id}">Complete</button>` : ""}<button class="btn small soft" data-action="edit" data-id="${task.id}">Edit</button>${options.actions && task.status !== "Completed" && task.status !== "Archived" ? `<button class="btn small soft" data-action="break-subtasks" data-id="${task.id}">Break down</button><button class="btn small soft" data-action="touch" data-id="${task.id}">Touch</button>` : ""}</div></article>`;
     }
 
     function renderArchiveRow(task, options = {}) {
@@ -2358,6 +3125,26 @@
       return `<section class="panel section-card"><div class="section-header"><div><span class="eyebrow">Timeline</span><h3>Progress history</h3><p>Completed and archived tasks grouped into a scannable trail.</p></div></div><div class="archive-timeline">${content || emptyState("No completed or archived tasks yet. Complete something and it will stay here as progress history.")}</div></section>`;
     }
 
+    function renderAssistantReviewView() {
+      const active = sortTasks(activeTasks());
+      const actionable = active.filter(t => !["Waiting On", "Blocked", "Someday"].includes(t.status));
+      const stale = active.filter(t => daysSince(t.lastTouchedAt || t.createdAt) >= 14 && !["Waiting On", "Blocked"].includes(t.status)).sort((a, b) => daysSince(b.lastTouchedAt || b.createdAt) - daysSince(a.lastTouchedAt || a.createdAt));
+      const unscheduled = active.filter(t => !t.dueDate && Number(t.importance) >= 4 && !["Someday", "Waiting On", "Blocked"].includes(t.status));
+      const wins = completedOrArchivedTasks().sort((a, b) => validTime(taskHistoryDate(b)) - validTime(taskHistoryDate(a))).slice(0, 5);
+      visibleTaskIds = [...new Set([...actionable.slice(0, 6), ...stale, ...unscheduled].map(t => t.id))];
+      return `<div class="archive-dashboard">${renderDailyBriefingPanel(active)}${renderAISettings()}${renderAIResultPanel()}<div class="assistant-review-layout"><div>${renderAssistantReviewSection("Recommended Next", "Top tasks adjusted by your selected focus mode and feedback.", actionable.slice(0, 6), "No recommended tasks right now — clear runway.")}${renderAssistantReviewSection("Stale Tasks", "Untouched tasks that may need a decision.", stale.slice(0, 6), "No stale tasks yet.")}${renderAssistantReviewSection("Unscheduled Important", "High-importance tasks with no due date.", unscheduled.slice(0, 6), "No unscheduled important tasks.")}</div><div>${renderAssistantInsightsPanel(state.tasks)}${renderCleanupPanel(state.tasks)}<section class="assistant-review-section"><div class="section-header"><div><span class="eyebrow">Recent Wins</span><h3>Completed momentum</h3><p>Recent archive entries to keep progress visible.</p></div></div><div class="archive-win-list">${wins.map(t => renderArchiveRow(t, { win: true, actions: true })).join("") || emptyState("No recent wins yet.")}</div></section></div></div></div>`;
+    }
+
+    function renderAssistantReviewSection(title, description, tasks, empty) {
+      return `<section class="assistant-review-section"><div class="section-header"><div><span class="eyebrow">Assistant Review</span><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p></div></div><div class="task-list">${tasks.map(t => renderAssistantTaskRecommendation(t)).join("") || emptyState(empty)}</div></section>`;
+    }
+
+    function renderAssistantTaskRecommendation(task) {
+      const categoryId = task.categories?.[0] || "";
+      if (isAssistantHidden("task", "recommend", task.id, categoryId)) return "";
+      return `<div>${renderCompactTaskRow(task, { actions: true, reasons: true })}${renderAssistantFeedback("task", "recommend", task.id, categoryId)}</div>`;
+    }
+
     function fmtRelative(isoString) { const d = daysSince(isoString); if (d === 0) return "today"; if (d === 1) return "yesterday"; return `${d} days ago`; }
     function emptyState(message) { return `<div class="empty">${escapeHtml(message)}</div>`; }
     function renderGroup(title, tasks, empty = "Nothing here.") { return `<div class="group-title"><h3>${escapeHtml(title)}</h3><span>${tasks.length} item${tasks.length === 1 ? "" : "s"}</span></div><div class="task-list">${tasks.map(t => renderTaskCard(t)).join("") || emptyState(empty)}</div>`; }
@@ -2401,7 +3188,7 @@
 
     function renderPriorityView() {
       const tasks = sortTasks(activeTasks(), "priority"); visibleTaskIds = tasks.map(t => t.id);
-      const groups = [{ title: "Critical / very visible", test: t => taskScore(t) >= 130 }, { title: "High priority", test: t => taskScore(t) >= 100 && taskScore(t) < 130 }, { title: "Worth doing soon", test: t => taskScore(t) >= 70 && taskScore(t) < 100 }, { title: "Gentle / background", test: t => taskScore(t) < 70 }];
+      const groups = [{ title: "Critical / very visible", test: t => focusAdjustedScore(t) >= 130 }, { title: "High priority", test: t => focusAdjustedScore(t) >= 100 && focusAdjustedScore(t) < 130 }, { title: "Worth doing soon", test: t => focusAdjustedScore(t) >= 70 && focusAdjustedScore(t) < 100 }, { title: "Gentle / background", test: t => focusAdjustedScore(t) < 70 }];
       return groups.map(g => renderGroup(g.title, tasks.filter(g.test))).join("");
     }
 
@@ -2474,12 +3261,92 @@
       $("#modalTitle").textContent = taskId ? "Edit task" : "New detailed task";
       $("#taskId").value = task.id || ""; $("#taskTitle").value = task.title || ""; $("#taskNotes").value = task.notes || ""; $("#taskDueDate").value = task.dueDate || ""; $("#taskStartDate").value = task.startDate || ""; $("#taskImportance").value = task.importance || 3; $("#taskUrgency").value = task.urgency || 3; $("#taskEffort").value = task.effort || 3; $("#taskEnergy").value = task.energy || "Medium"; $("#taskStatus").value = task.status || "Inbox"; $("#taskWaitingOn").value = task.waitingOn || ""; $("#taskManualBoost").value = task.manualBoost ?? 0; $("#taskRecurringType").value = task.recurring?.type || "none"; $("#taskRecurringInterval").value = task.recurring?.intervalDays || 7; $("#taskTags").value = (task.tags || []).join(", "); $("#taskTimeline").value = task.timeline || ""; $("#taskLinks").value = (task.links || []).join("\n");
       $("#taskCategorySearch").value = ""; hideInlineCategoryCreator(); renderTaskCategoryChecks(task.categories || []);
-      modalSubtasks = cleanSubtasksForSave(task.subtasks || []); renderSubtaskEditor();
+      modalSubtasks = cleanSubtasksForSave(task.subtasks || []);
+      modalAssistantSuggestions = [];
+      modalAssistantApplied = false;
+      renderAssistantBreakdownPreview([]);
+      renderSubtaskEditor();
       $("#modalDeleteBtn").classList.toggle("hidden", !taskId);
       const dialog = $("#taskDialog"); if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", ""); setTimeout(() => $("#taskTitle").focus(), 50);
     }
 
     function closeTaskDialog() { const dialog = $("#taskDialog"); if (typeof dialog.close === "function") dialog.close(); else dialog.removeAttribute("open"); }
+
+    function currentModalTaskDraft() {
+      syncModalSubtaskInputs();
+      return normalizeTask({
+        id: editingTaskId || $("#taskId").value || "modal",
+        title: $("#taskTitle").value.trim() || "Untitled task",
+        notes: $("#taskNotes").value.trim(),
+        categories: getSelectedCategoryIdsFromChecks(),
+        dueDate: $("#taskDueDate").value,
+        startDate: $("#taskStartDate").value,
+        importance: Number($("#taskImportance").value),
+        urgency: Number($("#taskUrgency").value),
+        effort: Number($("#taskEffort").value),
+        energy: $("#taskEnergy").value,
+        status: $("#taskStatus").value,
+        waitingOn: $("#taskWaitingOn").value.trim(),
+        manualBoost: Number($("#taskManualBoost").value),
+        recurring: { type: $("#taskRecurringType").value, intervalDays: Number($("#taskRecurringInterval").value || 7) },
+        tags: splitLinesOrCommas($("#taskTags").value),
+        timeline: $("#taskTimeline").value.trim(),
+        subtasks: meaningfulModalSubtasks(),
+        links: splitLines($("#taskLinks").value),
+        createdAt: state.tasks.find(t => t.id === editingTaskId)?.createdAt || nowIso(),
+        lastTouchedAt: state.tasks.find(t => t.id === editingTaskId)?.lastTouchedAt || nowIso()
+      });
+    }
+
+    function renderAssistantBreakdownPreview(suggestions = modalAssistantSuggestions) {
+      const panel = $("#assistantBreakdownPreview");
+      if (!panel) return;
+      modalAssistantSuggestions = suggestions;
+      panel.classList.toggle("show", Boolean(suggestions.length));
+      panel.innerHTML = suggestions.length ? `<div class="assistant-breakdown-head"><div><strong>Suggested subtasks</strong><span>Review the local assistant suggestions before adding them to this checklist.</span></div><span class="chip">${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"}</span></div><div class="assistant-suggestion-list">${suggestions.map((text, index) => `<label class="assistant-suggestion-row"><input type="checkbox" data-assistant-suggestion="${index}" checked /> <span>${escapeHtml(text)}</span></label>`).join("")}</div><div class="assistant-breakdown-actions"><button class="btn small soft" type="button" data-subtask-modal-action="cancel-breakdown">Cancel</button><button class="btn small soft" type="button" data-subtask-modal-action="apply-selected-breakdown">Add selected</button><button class="btn small primary" type="button" data-subtask-modal-action="apply-all-breakdown">Apply all</button></div>` : "";
+    }
+
+    function generateModalAssistantBreakdown() {
+      const suggestions = suggestSubtasksForTask(currentModalTaskDraft());
+      renderAssistantBreakdownPreview(suggestions);
+      if (!suggestions.length) toast("No missing subtasks suggested");
+      else toast("Assistant suggestions ready");
+    }
+
+    async function generateModalAIBreakdown() {
+      const task = currentModalTaskDraft();
+      if (!aiAssistantEnabled()) {
+        toast("Enable AI assistant first. Using local breakdown.");
+        generateModalAssistantBreakdown();
+        return;
+      }
+      toast("Asking AI for breakdown...");
+      try {
+        const result = await callAIAssistant("breakdown", task);
+        const suggestions = result.suggestions.filter(item => item.type === "subtask").map(item => item.title);
+        renderAssistantBreakdownPreview(suggestions.length ? suggestions : suggestSubtasksForTask(task));
+        toast(suggestions.length ? "AI breakdown ready" : "AI returned no subtasks — using local suggestions");
+      } catch (error) {
+        renderAssistantBreakdownPreview(suggestSubtasksForTask(task));
+        toast(`AI unavailable — using local breakdown`);
+      }
+    }
+
+    function selectedModalAssistantSuggestions() {
+      return $$("#assistantBreakdownPreview [data-assistant-suggestion]:checked").map(input => modalAssistantSuggestions[Number(input.dataset.assistantSuggestion)]).filter(Boolean);
+    }
+
+    function applyModalAssistantSuggestions(mode = "selected") {
+      const selected = mode === "all" ? modalAssistantSuggestions : selectedModalAssistantSuggestions();
+      const count = applySuggestedSubtasks("modal", selected);
+      if (count) modalAssistantApplied = true;
+      toast(count ? `Added ${count} suggested subtask${count === 1 ? "" : "s"}. Save the task to keep them.` : "No new subtasks to add");
+    }
+
+    function openTaskBreakdown(taskId) {
+      openTaskDialog(taskId);
+      setTimeout(generateModalAssistantBreakdown, 0);
+    }
 
     function getModalSubtasksForSave() {
       syncModalSubtaskInputs();
@@ -2584,6 +3451,11 @@
       if (action === "delete") deleteModalSubtask(id);
       if (action === "move-up") moveModalSubtask(id, -1);
       if (action === "move-down") moveModalSubtask(id, 1);
+      if (action === "generate-breakdown") generateModalAssistantBreakdown();
+      if (action === "generate-ai-breakdown") generateModalAIBreakdown();
+      if (action === "cancel-breakdown") renderAssistantBreakdownPreview([]);
+      if (action === "apply-selected-breakdown") applyModalAssistantSuggestions("selected");
+      if (action === "apply-all-breakdown") applyModalAssistantSuggestions("all");
       if (action === "clear-completed") { syncModalSubtaskInputs(); modalSubtasks = modalSubtasks.filter(s => !s.done); renderSubtaskEditor(); }
       if (action === "mark-incomplete") { syncModalSubtaskInputs(); modalSubtasks = modalSubtasks.map(s => ({ ...s, done: false, completedAt: null })); renderSubtaskEditor(); }
     }
@@ -2667,7 +3539,7 @@
       const waitingId = specialCatId("Waiting On"), somedayId = specialCatId("Someday / Ideas");
       if (status === "Waiting On" && waitingId && !categories.includes(waitingId)) categories.push(waitingId);
       if (status === "Someday" && somedayId && !categories.includes(somedayId)) categories.push(somedayId);
-      const task = normalizeTask({ ...(existing || {}), id, title: $("#taskTitle").value.trim() || "Untitled task", notes: $("#taskNotes").value.trim(), categories, dueDate: $("#taskDueDate").value, startDate: $("#taskStartDate").value, importance: Number($("#taskImportance").value), urgency: Number($("#taskUrgency").value), effort: Number($("#taskEffort").value), energy: $("#taskEnergy").value, status, waitingOn: $("#taskWaitingOn").value.trim(), manualBoost: Number($("#taskManualBoost").value), recurring: { type: $("#taskRecurringType").value, intervalDays: Number($("#taskRecurringInterval").value || 7) }, tags: splitLinesOrCommas($("#taskTags").value), timeline: $("#taskTimeline").value.trim(), subtasks: getModalSubtasksForSave(), links: splitLines($("#taskLinks").value), createdAt: existing?.createdAt || nowIso(), lastTouchedAt: nowIso(), completedAt: status === "Completed" ? (existing?.completedAt || nowIso()) : (status === "Archived" ? existing?.completedAt || null : null), archivedAt: status === "Archived" ? (existing?.archivedAt || nowIso()) : null });
+      const task = normalizeTask({ ...(existing || {}), id, title: $("#taskTitle").value.trim() || "Untitled task", notes: $("#taskNotes").value.trim(), categories, dueDate: $("#taskDueDate").value, startDate: $("#taskStartDate").value, importance: Number($("#taskImportance").value), urgency: Number($("#taskUrgency").value), effort: Number($("#taskEffort").value), energy: $("#taskEnergy").value, status, waitingOn: $("#taskWaitingOn").value.trim(), manualBoost: Number($("#taskManualBoost").value), recurring: { type: $("#taskRecurringType").value, intervalDays: Number($("#taskRecurringInterval").value || 7) }, tags: splitLinesOrCommas($("#taskTags").value), timeline: $("#taskTimeline").value.trim(), subtasks: getModalSubtasksForSave(), links: splitLines($("#taskLinks").value), createdAt: existing?.createdAt || nowIso(), lastTouchedAt: nowIso(), completedAt: status === "Completed" ? (existing?.completedAt || nowIso()) : (status === "Archived" ? existing?.completedAt || null : null), archivedAt: status === "Archived" ? (existing?.archivedAt || nowIso()) : null, lastSuggestedAt: modalAssistantApplied ? nowIso() : existing?.lastSuggestedAt || null, breakdownGeneratedAt: modalAssistantApplied ? nowIso() : existing?.breakdownGeneratedAt || null });
       state.tasks = existing ? state.tasks.map(t => t.id === id ? task : t) : [task, ...state.tasks];
       closeTaskDialog(); toast(existing ? "Task updated" : "Task created"); render();
     }
@@ -2865,6 +3737,16 @@
 
     function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); clearTimeout(toast._timer); toast._timer = setTimeout(() => el.classList.remove("show"), 2400); }
 
+    function registerServiceWorker() {
+      if (!("serviceWorker" in navigator)) return;
+      if (!["http:", "https:"].includes(window.location.protocol)) return;
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(error => {
+          console.warn("Service worker registration failed:", error);
+        });
+      });
+    }
+
     function setupStaticControls() {
       $("#taskImportance").innerHTML = Object.entries(SCORE_LABELS).map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
       $("#taskUrgency").innerHTML = Object.entries(SCORE_LABELS).map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
@@ -2892,14 +3774,22 @@
       $("#touchAllBtn").addEventListener("click", () => { visibleTaskIds.forEach(id => { const t = state.tasks.find(task => task.id === id); if (t && !["Completed", "Archived"].includes(t.status)) t.lastTouchedAt = nowIso(); }); toast("Touched visible active tasks"); render(); });
 
       document.body.addEventListener("click", event => {
+        const focusModeBtn = event.target.closest("[data-focus-mode]");
+        if (focusModeBtn) { state.settings.focusMode = focusModeBtn.dataset.focusMode || "normal"; toast(`Focus mode: ${focusModeBtn.textContent.trim()}`); render(); return; }
         const viewBtn = event.target.closest("[data-view]"); if (viewBtn) { currentView = viewBtn.dataset.view; state.settings.view = currentView; render(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
         if (event.target.closest("#bulkInboxBtn")) { openTaskDialog(); return; }
         const actionBtn = event.target.closest("[data-action]"); if (!actionBtn) return;
         event.preventDefault();
         const id = actionBtn.dataset.id; const action = actionBtn.dataset.action;
+        if (action === "assistant-feedback") { recordAssistantFeedback(actionBtn.dataset.feedbackKind, actionBtn.dataset.feedbackSubtype, actionBtn.dataset.feedbackValue, id || "", actionBtn.dataset.categoryId || ""); return; }
+        if (action === "ai-review") { requestAIReview("review"); return; }
+        if (action === "ai-cleanup") { requestAIReview("cleanup"); return; }
+        if (action === "ai-briefing") { requestAIReview("dailyBriefing"); return; }
+        if (action === "ai-break-subtasks") { openTaskDialog(id); setTimeout(generateModalAIBreakdown, 0); return; }
         if (action === "toggle-subtask") { toggleTaskSubtask(id, actionBtn.dataset.subtaskId); return; }
         if (action === "complete") { completeTask(id); return; }
         if (action === "edit") { openTaskDialog(id); return; }
+        if (action === "break-subtasks") { openTaskBreakdown(id); return; }
         if (action === "archive") { archiveTask(id); return; }
         if (action === "unarchive") { unarchiveTask(id); return; }
         if (action === "delete") { deleteTask(id); return; }
@@ -2919,6 +3809,7 @@
         if (event.target.id === "categorySearchInput") { state.settings.categorySearch = event.target.value; renderDebounced(); }
       });
       document.body.addEventListener("change", event => {
+        if (event.target.id === "aiAssistantToggle") { state.settings.useAIAssistant = event.target.checked; toast(event.target.checked ? "AI assistant enabled when backend is available" : "AI assistant disabled"); render(); }
         if (event.target.id === "sortSelect") { state.settings.sort = event.target.value; render(); }
         if (event.target.id === "statusFilter") { state.settings.status = event.target.value; render(); }
         if (event.target.id === "categoryFilter") { state.settings.categoryFilter = event.target.value; render(); }
@@ -2933,6 +3824,7 @@
 
     setupStaticControls();
     attachEvents();
+    registerServiceWorker();
     render();
   </script>
 

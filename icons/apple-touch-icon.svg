@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Personal Command Centre">
+  <defs>
+    <linearGradient id="bg" x1="28" y1="18" x2="152" y2="164" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#baf06a"/>
+      <stop offset="0.55" stop-color="#39b878"/>
+      <stop offset="1" stop-color="#0d3b27"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#bg)"/>
+  <rect x="45" y="38" width="90" height="104" rx="18" fill="#f7fbf6" opacity="0.94"/>
+  <path d="M64 70h54" stroke="#0d3b27" stroke-width="11" stroke-linecap="round"/>
+  <path d="M64 95h42" stroke="#1d7a4e" stroke-width="11" stroke-linecap="round"/>
+  <path d="M64 120h28" stroke="#289963" stroke-width="11" stroke-linecap="round"/>
+  <path d="M113 113l9 9 20-24" fill="none" stroke="#baf06a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
