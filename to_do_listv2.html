@@ -2645,7 +2645,7 @@
     }
 
     function renderAISettings() {
-      return `<div class="ai-settings-row"><div><label class="ai-toggle"><input type="checkbox" id="aiAssistantToggle" ${aiAssistantEnabled() ? "checked" : ""}> Use AI assistant when available</label><p>AI features send selected task context or compact task summaries to your local backend, which then calls OpenAI. The app keeps using the local rule-based assistant when offline or unavailable.</p></div><button class="btn small soft" data-action="ai-review">AI review</button></div>`;
+      return `<div class="ai-settings-row"><div><label class="ai-toggle"><input type="checkbox" id="aiAssistantToggle" ${aiAssistantEnabled() ? "checked" : ""}> Use AI assistant when available</label><p>AI features send selected task context or compact task summaries to your local backend, which then calls local Ollama. The app keeps using the local rule-based assistant when offline or unavailable.</p></div><button class="btn small soft" data-action="ai-review">AI review</button></div>`;
     }
 
     function renderAIResultPanel(result = latestAIResult) {

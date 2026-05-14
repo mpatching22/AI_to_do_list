@@ -1,52 +1,46 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import OpenAI from "openai";
 
 const PORT = Number(process.env.PORT || 8787);
-const MODEL = "gpt-5.2";
+const PROVIDER = "ollama";
+const OLLAMA_MODEL = "llama3";
+const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || "http://localhost:11434/api/generate";
+const REQUEST_TIMEOUT_MS = Number(process.env.ASSISTANT_TIMEOUT_MS || 45000);
 const ALLOWED_MODES = new Set(["breakdown", "dailyBriefing", "review", "cleanup", "nextTask"]);
+const SUGGESTION_TYPES = new Set(["subtask", "insight", "cleanup", "recommendation", "briefing"]);
+
+// To use a smaller local model, install it with `ollama pull <model>` and change
+// OLLAMA_MODEL above, for example "llama3.2:3b" or another model you have locally.
+// To switch back to OpenAI later, keep the /api/assistant contract and replace
+// callOllama() with an OpenAI provider function that returns the same JSON shape.
 
 const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "512kb" }));
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const assistantSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["summary", "suggestions"],
-  properties: {
-    summary: { type: "string" },
-    suggestions: {
-      type: "array",
-      maxItems: 8,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["type", "title", "reason", "confidence", "actions"],
-        properties: {
-          type: { type: "string", enum: ["subtask", "insight", "cleanup", "recommendation", "briefing"] },
-          title: { type: "string" },
-          reason: { type: "string" },
-          confidence: { type: "number", minimum: 0, maximum: 1 },
-          actions: { type: "array", maxItems: 5, items: { type: "string" } }
-        }
-      }
-    }
-  }
-};
-
 const systemInstructions = `
-You are the optional AI layer for a local Personal Command Centre task app.
+You are the optional local AI layer for a Personal Command Centre task app.
+You are running through Ollama on the user's machine.
 Be practical, concise, calm, and action-oriented.
-Return JSON only, matching the provided schema.
+Return ONLY valid JSON. Do not include markdown, code fences, or commentary.
+Use this exact shape:
+{
+  "summary": "short human-readable summary",
+  "suggestions": [
+    {
+      "type": "subtask|insight|cleanup|recommendation|briefing",
+      "title": "...",
+      "reason": "...",
+      "confidence": 0.0,
+      "actions": []
+    }
+  ]
+}
 Do not invent deadlines, commitments, categories, or completed work.
 Do not mark tasks done or imply changes were applied.
 Prefer small next actions and preserve user agency.
-Use the supplied local rule-based insights as context, but improve them when useful.
-For breakdown mode, suggestions should be actionable subtasks, not commentary.
+For breakdown mode, suggestions should be actionable subtasks.
 For cleanup mode, suggest review actions without deleting or modifying anything.
 `;
 
@@ -61,13 +55,25 @@ function sanitizeBody(body) {
   };
 }
 
+function promptForPayload(payload) {
+  return `${systemInstructions}
+
+Assistant mode: ${payload.mode}
+Focus mode: ${payload.focusMode}
+
+Input context as JSON:
+${JSON.stringify(payload, null, 2)}
+
+Return only the JSON object.`;
+}
+
 function normalizeAssistantResponse(value) {
   const result = value && typeof value === "object" ? value : {};
   const suggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
   return {
-    summary: String(result.summary || "AI suggestions are ready.").slice(0, 500),
+    summary: String(result.summary || "Local AI suggestions are ready.").slice(0, 500),
     suggestions: suggestions.slice(0, 8).map(item => ({
-      type: ["subtask", "insight", "cleanup", "recommendation", "briefing"].includes(item?.type) ? item.type : "insight",
+      type: SUGGESTION_TYPES.has(item?.type) ? item.type : "insight",
       title: String(item?.title || "").slice(0, 180),
       reason: String(item?.reason || "").slice(0, 300),
       confidence: Math.max(0, Math.min(1, Number(item?.confidence ?? 0.5))),
@@ -76,56 +82,111 @@ function normalizeAssistantResponse(value) {
   };
 }
 
+function fallbackAssistantResponse(mode, detail = "The local model did not return valid JSON.") {
+  return {
+    summary: "Local AI could not produce structured suggestions.",
+    suggestions: [
+      {
+        type: mode === "breakdown" ? "subtask" : "insight",
+        title: "Use the local rule-based assistant fallback",
+        reason: detail,
+        confidence: 0.2,
+        actions: ["Try again", "Check Ollama is running", "Use the existing local suggestions"]
+      }
+    ]
+  };
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || "").trim();
+  if (!raw) throw new Error("Empty Ollama response.");
+  try { return JSON.parse(raw); } catch {}
+
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced) {
+    try { return JSON.parse(fenced[1]); } catch {}
+  }
+
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start >= 0 && end > start) return JSON.parse(raw.slice(start, end + 1));
+  throw new Error("No valid JSON object found in Ollama response.");
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function isOllamaReachable() {
+  try {
+    const response = await fetchWithTimeout(OLLAMA_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: OLLAMA_MODEL, prompt: "Return {\"ok\":true}", stream: false, format: "json" })
+    }, 5000);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function callOllama(payload) {
+  const response = await fetchWithTimeout(OLLAMA_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      prompt: promptForPayload(payload),
+      stream: false,
+      format: "json",
+      options: { temperature: 0.2, num_predict: 900 }
+    })
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`Ollama returned ${response.status}${body ? `: ${body.slice(0, 180)}` : ""}`);
+  }
+
+  const data = await response.json();
+  const parsed = extractJsonObject(data.response);
+  return normalizeAssistantResponse(parsed);
+}
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, provider: PROVIDER, model: OLLAMA_MODEL });
+});
+
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, model: MODEL, hasApiKey: Boolean(process.env.OPENAI_API_KEY) });
+  res.json({ ok: true, provider: PROVIDER, model: OLLAMA_MODEL });
 });
 
 app.post("/api/assistant", async (req, res) => {
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(503).json({ error: "OPENAI_API_KEY is not configured." });
-  }
-
   const payload = sanitizeBody(req.body);
   if (!ALLOWED_MODES.has(payload.mode)) {
     return res.status(400).json({ error: "Invalid assistant mode." });
   }
 
   try {
-    const response = await client.responses.create({
-      model: MODEL,
-      instructions: systemInstructions,
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: JSON.stringify({
-                request: "Return assistant suggestions for the Personal Command Centre.",
-                payload
-              })
-            }
-          ]
-        }
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "command_centre_assistant_response",
-          strict: true,
-          schema: assistantSchema
-        }
-      }
-    });
-
-    const parsed = JSON.parse(response.output_text || "{}");
-    res.json(normalizeAssistantResponse(parsed));
+    res.json(await callOllama(payload));
   } catch (error) {
-    console.error("Assistant API error:", error);
-    res.status(500).json({ error: "Assistant request failed." });
+    const message = error.name === "AbortError" ? "Ollama request timed out." : error.message;
+    console.error("Ollama assistant error:", message);
+    res.status(503).json({ error: message, fallback: fallbackAssistantResponse(payload.mode, message) });
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  const reachable = await isOllamaReachable();
   console.log(`Personal Command Centre assistant backend listening on http://localhost:${PORT}`);
+  console.log(`Provider: ${PROVIDER}`);
+  console.log(`Model: ${OLLAMA_MODEL}`);
+  console.log(`Ollama endpoint: ${OLLAMA_ENDPOINT}`);
+  console.log(`Ollama reachable: ${reachable ? "yes" : "no"}`);
 });
